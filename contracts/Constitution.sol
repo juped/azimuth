@@ -112,7 +112,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     function setManagementProxy(uint32 _ship, address _manager)
       external
       activeShipOwner(_ship)
-      onlyOwner
+      onlyOwnerOrigin
     {
       ships.setManagementProxy(_ship, _manager);
     }
@@ -129,7 +129,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
                            bool _discontinuous)
       external
       activeShipManager(_ship)
-      onlyOwner
+      onlyOwnerOrigin
     {
       if (_discontinuous)
       {
@@ -152,7 +152,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     //
     function spawn(uint32 _ship, address _target)
       external
-      onlyOwner
+      onlyOwnerOrigin
     {
       //  only currently unowned (and thus also inactive) ships can be spawned
       //
@@ -216,7 +216,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
                       bool _direct,
                       address _holder )
       internal
-      onlyOwner
+      onlyOwnerOrigin
     {
       //  register the spawn for _ship's prefix, incrementing spawn count
       //
@@ -261,7 +261,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     function getSpawnLimit(uint32 _ship, uint256 _time)
       public
       view
-      onlyOwner
+      onlyOwnerOrigin
       returns (uint32 limit)
     {
       Ships.Class class = ships.getShipClass(_ship);
@@ -288,7 +288,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     function setSpawnProxy(uint16 _prefix, address _spawnProxy)
       external
       activeShipOwner(_prefix)
-      onlyOwner
+      onlyOwnerOrigin
     {
       ships.setSpawnProxy(_prefix, _spawnProxy);
     }
@@ -307,7 +307,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     //
     function transferShip(uint32 _ship, address _target, bool _reset)
       public
-      onlyOwner
+      onlyOwnerOrigin
     {
       //  old: current ship owner
       //
@@ -394,7 +394,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     //
     function setTransferProxy(uint32 _ship, address _transferProxy)
       public
-      onlyOwner
+      onlyOwnerOrigin
     {
       //  owner: owner of _ship
       //
@@ -420,7 +420,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     function canEscapeTo(uint32 _ship, uint32 _sponsor)
       public
       view
-      onlyOwner
+      onlyOwnerOrigin
       returns (bool canEscape)
     {
       //  can't escape to a sponsor that hasn't been born
@@ -473,7 +473,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     function escape(uint32 _ship, uint32 _sponsor)
       external
       activeShipManager(_ship)
-      onlyOwner
+      onlyOwnerOrigin
     {
       require(canEscapeTo(_ship, _sponsor));
       ships.setEscapeRequest(_ship, _sponsor);
@@ -484,7 +484,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     function cancelEscape(uint32 _ship)
       external
       activeShipManager(_ship)
-      onlyOwner
+      onlyOwnerOrigin
     {
       ships.cancelEscape(_ship);
     }
@@ -496,7 +496,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     //
     function adopt(uint32 _ship)
       external
-      onlyOwner
+      onlyOwnerOrigin
     {
       require( ships.isEscaping(_ship) &&
                ships.canManage(ships.getEscapeRequest(_ship), msg.sender) );
@@ -514,7 +514,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     //
     function reject(uint32 _ship)
       external
-      onlyOwner
+      onlyOwnerOrigin
     {
       require( ships.isEscaping(_ship) &&
                ships.canManage(ships.getEscapeRequest(_ship), msg.sender) );
@@ -531,7 +531,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     //
     function detach(uint32 _ship)
       external
-      onlyOwner
+      onlyOwnerOrigin
     {
       require( ships.hasSponsor(_ship) &&
                ships.canManage(ships.getSponsor(_ship), msg.sender) );
@@ -553,7 +553,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     function setVotingProxy(uint8 _ship, address _voter)
       external
       activeShipOwner(_ship)
-      onlyOwner
+      onlyOwnerOrigin
     {
       ships.setVotingProxy(_ship, _voter);
     }
@@ -569,7 +569,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     function startConstitutionPoll(uint8 _galaxy, ConstitutionBase _proposal)
       external
       activeShipVoter(_galaxy)
-      onlyOwner
+      onlyOwnerOrigin
     {
       //  ensure that the upgrade target expects this contract as the source
       //
@@ -582,7 +582,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     function startDocumentPoll(uint8 _galaxy, bytes32 _proposal)
       external
       activeShipVoter(_galaxy)
-      onlyOwner
+      onlyOwnerOrigin
     {
       polls.startDocumentPoll(_proposal);
     }
@@ -600,7 +600,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
                                   bool _vote)
       external
       activeShipVoter(_galaxy)
-      onlyOwner
+      onlyOwnerOrigin
     {
       //  majority: true if the vote resulted in a majority, false otherwise
       //
@@ -622,7 +622,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     function castDocumentVote(uint8 _galaxy, bytes32 _proposal, bool _vote)
       external
       activeShipVoter(_galaxy)
-      onlyOwner
+      onlyOwnerOrigin
     {
       polls.castDocumentVote(_galaxy, _proposal, _vote);
     }
@@ -632,7 +632,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     //
     function updateConstitutionPoll(ConstitutionBase _proposal)
       external
-      onlyOwner
+      onlyOwnerOrigin
     {
       //  majority: true if the poll ended in a majority, false otherwise
       //
@@ -654,7 +654,7 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     //
     function updateDocumentPoll(bytes32 _proposal)
       external
-      onlyOwner
+      onlyOwnerOrigin
     {
       polls.updateDocumentPoll(_proposal);
     }
@@ -746,6 +746,15 @@ contract Constitution is ConstitutionBase, ERC165Mapping
     {
       require( ships.canVoteAs(_ship, msg.sender) &&
                ships.isActive(_ship) );
+      _;
+    }
+
+    //  onlyOwnerOrigin(): require that the tx be originally from owner
+    //
+    //    only for the opening ceremony
+    //
+    modifier onlyOwnerOrigin() {
+      require(tx.origin == this.owner());
       _;
     }
 }
